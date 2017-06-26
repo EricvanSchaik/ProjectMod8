@@ -12,8 +12,8 @@ expr :  prfOp expr                  # prfExpr
 stat:   ID IS expr                       #assStat
         | IF expr THEN stat (ELSE stat)? #ifStat
         | WHILE expr DO stat             #whileStat
-        | LPAR (stat SEMI)+ RPAR                         #blockStat
-        | IN LPAR STR COMMA target RPAR  #inStat  // auxiliary, not Pascal
+        | LPAR (stat SEMI)+ RPAR         #blockStat
+        | READ LPAR STR COMMA ID RPAR    #inStat  // auxiliary, not Pascal
         | OUT LPAR STR COMMA expr RPAR   #outStat // auxiliary, not Pascal
         ;
 
