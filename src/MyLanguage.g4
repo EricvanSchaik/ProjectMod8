@@ -1,5 +1,7 @@
 grammar MyLanguage;
 
+decl : type ID (IS expr)?;
+
 expr :  prfOp expr                  # prfExpr
         | expr Op expr              # opExpr
         | LEFT expr RIGHT           # parExpr
@@ -7,14 +9,31 @@ expr :  prfOp expr                  # prfExpr
         | BOOL                      # boolExpr
         | NUMBER                    # numExpr
         ;
+stat:   ID IS expr                       #assStat
+        | IF expr THEN stat (ELSE stat)? #ifStat
+        | WHILE expr DO stat             #whileStat
+        | LPAR (stat SEMI)+ RPAR                         #blockStat
+        | IN LPAR STR COMMA target RPAR  #inStat  // auxiliary, not Pascal
+        | OUT LPAR STR COMMA expr RPAR   #outStat // auxiliary, not Pascal
+        ;
+
+type: BOOLEAN | INTEGER;
 
 prfOp: MIN | NOT;
 
+// Types
 NUMBER : [0-9]+;
-BOOL : 'true' | 'false';
+BOOL : TRUE | FALSE;
 CHAR : [a-zA-Z];
 ID : CHAR (CHAR | NUMBER)*;
 
+// Keywords
+BOOLEAN : 'boolean';
+INTEGER : 'int';
+TRUE : 'true';
+FALSE : 'false';
+
+// Operators
 MIN : '-';
 PLUS : '+';
 NOT : '!';
@@ -28,6 +47,14 @@ EQ : '==';
 NE : '!=';
 AND : '&&';
 OR : '||';
+
+// Other
+IS : '=';
+LEFT : '(';
+RIGHT : ')';
+LPAR : '{';
+RPAR : '}';
+SEMI : ';';
 
 // ignore whitespace
 WS : [ \t\n\r] -> skip;
