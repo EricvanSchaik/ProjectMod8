@@ -2,19 +2,20 @@ grammar MyLanguage;
 
 decl : type ID (IS expr)?;
 
+stat:   ID IS expr                              #assStat
+        | IF LEFT expr RIGHT stat (ELSE stat)?  #ifStat
+        | WHILE expr DO stat                    #whileStat
+        | LPAR (stat SEMI)+ RPAR                #blockStat
+        | READ LEFT ID RIGHT                    #readStat
+        | PRINT LEFT expr RIGHT                 #printStat
+        ;
+
 expr :  prfOp expr                  # prfExpr
         | expr Op expr              # opExpr
         | LEFT expr RIGHT           # parExpr
         | ID                        # varExpr
         | BOOL                      # boolExpr
         | NUMBER                    # numExpr
-        ;
-stat:   ID IS expr                       #assStat
-        | IF expr THEN stat (ELSE stat)? #ifStat
-        | WHILE expr DO stat             #whileStat
-        | LPAR (stat SEMI)+ RPAR                         #blockStat
-        | IN LPAR STR COMMA target RPAR  #inStat  // auxiliary, not Pascal
-        | OUT LPAR STR COMMA expr RPAR   #outStat // auxiliary, not Pascal
         ;
 
 type: BOOLEAN | INTEGER;
