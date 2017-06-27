@@ -25,19 +25,9 @@ expr :  prfOp expr                                                          # pr
         | NUMBER                                                            # numExpr
         ;
 
-type: BOOLEAN | INTEGER;
-
-// Types
-NUMBER : [0-9]+;
-BOOL : TRUE | FALSE;
-CHAR : [a-zA-Z];
-ID : CHAR (CHAR | NUMBER)*;
-
 // Keywords
 BOOLEAN : 'boolean';
 INTEGER : 'int';
-TRUE : 'true';
-FALSE : 'false';
 CLASS : 'class';
 IF : 'if';
 ELSE : 'else';
@@ -47,6 +37,16 @@ RANGE: 'range';
 WHILE : 'while';
 READ : 'read';
 PRINT : 'print';
+
+type: BOOLEAN | INTEGER;
+
+// Types
+ID : CHAR (CHAR | NUMBER)*;
+NUMBER : [0-9]+;
+BOOL : TRUE | FALSE;
+CHAR : [a-zA-Z];
+TRUE : 'true';
+FALSE : 'false';
 
 // Operators
 prfOp: MIN | NOT;
