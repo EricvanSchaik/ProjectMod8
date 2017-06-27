@@ -1,5 +1,3 @@
 class hoi;
 
-while (true) x = x+1;
-
-if (true && true) x=1;
+while (true) { x = x+1; };

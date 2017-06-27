@@ -1,4 +1,4 @@
-// Generated from C:/Users/Birte/IdeaProjects/ProjectMod8/src\MyLanguage.g4 by ANTLR 4.7
+// Generated from C:/Users/Eric/IdeaProjects/ProjectMod8/src\MyLanguage.g4 by ANTLR 4.7
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -122,6 +122,16 @@ public interface MyLanguageListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPrintStat(MyLanguageParser.PrintStatContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link MyLanguageParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlock(MyLanguageParser.BlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link MyLanguageParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlock(MyLanguageParser.BlockContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code parExpr}
 	 * labeled alternative in {@link MyLanguageParser#expr}.

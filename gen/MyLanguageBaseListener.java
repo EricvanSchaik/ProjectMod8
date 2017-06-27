@@ -1,4 +1,4 @@
-// Generated from C:/Users/Birte/IdeaProjects/ProjectMod8/src\MyLanguage.g4 by ANTLR 4.7
+// Generated from C:/Users/Eric/IdeaProjects/ProjectMod8/src\MyLanguage.g4 by ANTLR 4.7
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -130,6 +130,18 @@ public class MyLanguageBaseListener implements MyLanguageListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitPrintStat(MyLanguageParser.PrintStatContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBlock(MyLanguageParser.BlockContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBlock(MyLanguageParser.BlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

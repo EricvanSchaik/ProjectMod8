@@ -6,13 +6,15 @@ body : (stat SEMI)+;
 
 stat :   type ID IS expr                                                    # declStat
         | ID IS expr                                                        # assStat
-        | IF LEFT expr RIGHT stat (ELSE stat)?                              # ifStat
-        | WHILE LEFT expr RIGHT stat                                        # whileStat
-        | FOR ID IN RANGE LEFT NUMBER SEMI NUMBER SEMI NUMBER RIGHT stat    # forStat
-        | LPAR (stat SEMI)+ RPAR                                            # blockStat
+        | IF LEFT expr RIGHT block (ELSE block)?                            # ifStat
+        | WHILE LEFT expr RIGHT block                                       # whileStat
+        | FOR ID IN RANGE LEFT NUMBER SEMI NUMBER SEMI NUMBER RIGHT block   # forStat
+        | block                                                             # blockStat
         | READ LEFT ID RIGHT                                                # readStat
         | PRINT LEFT expr RIGHT                                             # printStat
         ;
+
+block : LPAR (stat SEMI)+ RPAR;
 
 expr :  prfOp expr                                                          # prfExpr
         | expr multOp expr                                                  # multExpr
@@ -25,7 +27,15 @@ expr :  prfOp expr                                                          # pr
         | NUMBER                                                            # numExpr
         ;
 
+type: BOOLEAN | INTEGER;
+
+BOOL : TRUE | FALSE;
+
 // Keywords
+BOOLEAN : 'boolean';
+INTEGER : 'int';
+TRUE : 'true';
+FALSE : 'false';
 CLASS : 'class';
 IF : 'if';
 ELSE : 'else';
@@ -36,17 +46,10 @@ WHILE : 'while';
 READ : 'read';
 PRINT : 'print';
 
-type: BOOLEAN | INTEGER;
-
 // Types
-ID : CHAR (CHAR | NUMBER)*;
 NUMBER : [0-9]+;
-BOOL : TRUE | FALSE;
+ID : CHAR (CHAR | NUMBER)*;
 CHAR : [a-zA-Z];
-TRUE : 'true';
-FALSE : 'false';
-BOOLEAN : 'boolean';
-INTEGER : 'int';
 
 // Operators
 prfOp: MIN | NOT;
