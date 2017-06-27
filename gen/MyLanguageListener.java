@@ -123,6 +123,16 @@ public interface MyLanguageListener extends ParseTreeListener {
 	 */
 	void exitPrintStat(MyLanguageParser.PrintStatContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link MyLanguageParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlock(MyLanguageParser.BlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link MyLanguageParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlock(MyLanguageParser.BlockContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code parExpr}
 	 * labeled alternative in {@link MyLanguageParser#expr}.
 	 * @param ctx the parse tree

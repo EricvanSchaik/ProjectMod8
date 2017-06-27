@@ -78,6 +78,12 @@ public interface MyLanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPrintStat(MyLanguageParser.PrintStatContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link MyLanguageParser#block}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlock(MyLanguageParser.BlockContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code parExpr}
 	 * labeled alternative in {@link MyLanguageParser#expr}.
 	 * @param ctx the parse tree
