@@ -26,8 +26,6 @@ expr :  prfOp expr                                                          # pr
         ;
 
 // Keywords
-BOOLEAN : 'boolean';
-INTEGER : 'int';
 CLASS : 'class';
 IF : 'if';
 ELSE : 'else';
@@ -47,6 +45,8 @@ BOOL : TRUE | FALSE;
 CHAR : [a-zA-Z];
 TRUE : 'true';
 FALSE : 'false';
+BOOLEAN : 'boolean';
+INTEGER : 'int';
 
 // Operators
 prfOp: MIN | NOT;

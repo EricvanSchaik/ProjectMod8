@@ -5,11 +5,17 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Birte on 27-6-2017.
  */
 public class MyVisitor extends MyLanguageBaseVisitor {
+
+    private Map<String,Integer> scope = new HashMap<String,Integer>();
+    private Map<String,Type> type = new HashMap<String,Type>();
+    private Integer scopeLevel = 0;
 
     public static void main(String[] args) {
         MyVisitor visitor = new MyVisitor();
@@ -36,37 +42,45 @@ public class MyVisitor extends MyLanguageBaseVisitor {
 
     @Override
     public Object visitBody(MyLanguageParser.BodyContext ctx) {
+        Object result = null;
         for (MyLanguageParser.StatContext stat : ctx.stat()) {
             if (stat instanceof MyLanguageParser.DeclStatContext) {
-                visitDeclStat((MyLanguageParser.DeclStatContext) stat);
+                 result = visitDeclStat((MyLanguageParser.DeclStatContext) stat);
             }
             if (stat instanceof MyLanguageParser.AssStatContext) {
-                visitAssStat((MyLanguageParser.AssStatContext) stat);
+                result = visitAssStat((MyLanguageParser.AssStatContext) stat);
             }
             if (stat instanceof MyLanguageParser.IfStatContext) {
-                visitIfStat((MyLanguageParser.IfStatContext) stat);
+                result = visitIfStat((MyLanguageParser.IfStatContext) stat);
             }
             if (stat instanceof MyLanguageParser.WhileStatContext) {
-                visitWhileStat((MyLanguageParser.WhileStatContext) stat);
+                result = visitWhileStat((MyLanguageParser.WhileStatContext) stat);
             }
             if (stat instanceof MyLanguageParser.ForStatContext) {
-                visitForStat((MyLanguageParser.ForStatContext) stat);
+                result = visitForStat((MyLanguageParser.ForStatContext) stat);
             }
             if (stat instanceof MyLanguageParser.BlockStatContext) {
-                visitBlockStat((MyLanguageParser.BlockStatContext) stat);
+                result = visitBlockStat((MyLanguageParser.BlockStatContext) stat);
             }
             if (stat instanceof MyLanguageParser.ReadStatContext) {
-                visitReadStat((MyLanguageParser.ReadStatContext) stat);
+                result = visitReadStat((MyLanguageParser.ReadStatContext) stat);
             }
             if (stat instanceof MyLanguageParser.PrintStatContext) {
-                visitPrintStat((MyLanguageParser.PrintStatContext) stat);
+                result = visitPrintStat((MyLanguageParser.PrintStatContext) stat);
             }
         }
-        return super.visitBody(ctx);
+        return result;
     }
 
     @Override
     public Object visitDeclStat(MyLanguageParser.DeclStatContext ctx) {
+        scope.put(ctx.ID().toString(), scopeLevel);
+        if (ctx.type().BOOLEAN() != null) {
+            type.put(ctx.ID().toString(), Type.BOOLEAN);
+        }
+        else {
+            type.put(ctx.ID().toString(), Type.INTEGER);
+        }
         return super.visitDeclStat(ctx);
     }
 
