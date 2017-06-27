@@ -27,11 +27,7 @@ expr :  prfOp expr                                                          # pr
 
 type: BOOLEAN | INTEGER;
 
-// Types
-NUMBER : [0-9]+;
 BOOL : TRUE | FALSE;
-CHAR : [a-zA-Z];
-ID : CHAR (CHAR | NUMBER)*;
 
 // Keywords
 BOOLEAN : 'boolean';
@@ -47,6 +43,11 @@ RANGE: 'range';
 WHILE : 'while';
 READ : 'read';
 PRINT : 'print';
+
+// Types
+NUMBER : [0-9]+;
+ID : CHAR (CHAR | NUMBER)*;
+CHAR : [a-zA-Z];
 
 // Operators
 prfOp: MIN | NOT;
