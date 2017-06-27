@@ -14,13 +14,13 @@ import java.util.Map;
 public class MyVisitor extends MyLanguageBaseVisitor {
 
     private Map<String,Integer> scope = new HashMap<String,Integer>();
-    private Map<String,Type> type = new HashMap<String,Type>();
+    private Map<String, MyLanguageParser.TypeContext> type = new HashMap<String,MyLanguageParser.TypeContext>();
     private Integer scopeLevel = 0;
 
     public static void main(String[] args) {
         MyVisitor visitor = new MyVisitor();
         try {
-            System.out.println(visitor.traverse("class hoi; int x = 0;"));
+            System.out.println(visitor.traverse("class hoi; int x = 0; boolean x = 0;"));
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -74,18 +74,36 @@ public class MyVisitor extends MyLanguageBaseVisitor {
 
     @Override
     public Object visitDeclStat(MyLanguageParser.DeclStatContext ctx) {
-        scope.put(ctx.ID().toString(), scopeLevel);
-        if (ctx.type().BOOLEAN() != null) {
-            type.put(ctx.ID().toString(), Type.BOOLEAN);
+        if (scope.containsKey(ctx.ID().toString())) {
+            System.out.println("error, duplicate declaration");
         }
         else {
-            type.put(ctx.ID().toString(), Type.INTEGER);
+            scope.put(ctx.ID().toString(), scopeLevel);
         }
-        return super.visitDeclStat(ctx);
+        type.put(ctx.ID().toString(), ctx.type());
+        return null;
     }
 
     @Override
     public Object visitAssStat(MyLanguageParser.AssStatContext ctx) {
+        if (scope.containsKey(ctx.ID())) {
+            switch (ctx.expr()) {
+                case instanceof MyLanguageParser.ParExprContext :
+            }
+            if (ctx.expr() instanceof MyLanguageParser.ParExprContext){
+
+            }
+            if (ctx.expr() instanceof MyLanguageParser.VarExprContext){
+
+            }
+            if (ctx.expr() instanceof MyLanguageParser.CompExprContext){
+
+            }
+            if (ctx.expr() instanceof MyLanguageParser.PrfExprContext){
+
+            }
+            if (ctx.expr() instanceof )
+        }
         return super.visitAssStat(ctx);
     }
 
