@@ -1,4 +1,3 @@
-import jdk.nashorn.internal.parser.TokenStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -13,14 +12,15 @@ import java.util.Map;
  */
 public class MyVisitor extends MyLanguageBaseVisitor {
 
-    private Map<String,Integer> scope = new HashMap<String,Integer>();
-    private Map<String, MyLanguageParser.TypeContext> type = new HashMap<String,MyLanguageParser.TypeContext>();
+    private Map<String, Integer> scope = new HashMap<>();
+    private Map<String, Type> varType = new HashMap<>();
+    private Map<MyLanguageParser.ExprContext, Type> exprType = new HashMap<>();
     private Integer scopeLevel = 0;
 
     public static void main(String[] args) {
         MyVisitor visitor = new MyVisitor();
         try {
-            System.out.println(visitor.traverse("class hoi; int x = 0; boolean x = 0;"));
+            System.out.println(visitor.traverse("class hoi; int x = 1;"));
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -44,166 +44,63 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitBody(MyLanguageParser.BodyContext ctx) {
         Object result = null;
         for (MyLanguageParser.StatContext stat : ctx.stat()) {
-            if (stat instanceof MyLanguageParser.DeclStatContext) {
-                 result = visitDeclStat((MyLanguageParser.DeclStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.AssStatContext) {
-                result = visitAssStat((MyLanguageParser.AssStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.IfStatContext) {
-                result = visitIfStat((MyLanguageParser.IfStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.WhileStatContext) {
-                result = visitWhileStat((MyLanguageParser.WhileStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.ForStatContext) {
-                result = visitForStat((MyLanguageParser.ForStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.BlockStatContext) {
-                result = visitBlockStat((MyLanguageParser.BlockStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.ReadStatContext) {
-                result = visitReadStat((MyLanguageParser.ReadStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.PrintStatContext) {
-                result = visitPrintStat((MyLanguageParser.PrintStatContext) stat);
-            }
+            result = visit(stat);
         }
         return result;
     }
 
     @Override
     public Object visitDeclStat(MyLanguageParser.DeclStatContext ctx) {
+        Object result = visit(ctx.expr());
         if (scope.containsKey(ctx.ID().toString())) {
             System.out.println("error, duplicate declaration");
         }
         else {
             scope.put(ctx.ID().toString(), scopeLevel);
+            if (ctx.type().getText().equals("int") && exprType.get(ctx.expr()) == Type.INTEGER) {
+                varType.put(ctx.ID().getText(), Type.INTEGER);
+            }
+            else if (exprType.get(ctx.expr()) == Type.BOOLEAN) {
+                varType.put(ctx.ID().getText(), Type.BOOLEAN);
+            }
+            else {
+                System.out.println("error, wrong type");
+            }
         }
-        type.put(ctx.ID().toString(), ctx.type());
-        return null;
+        return result;
     }
 
     @Override
     public Object visitAssStat(MyLanguageParser.AssStatContext ctx) {
+        Object result = visit(ctx.expr());
         if (scope.containsKey(ctx.ID())) {
-            switch (ctx.expr()) {
-                case instanceof MyLanguageParser.ParExprContext :
+            if (!(varType.get(ctx.ID().getText()) == exprType.get(ctx.expr()))) {
+                System.out.println("error, wrong type");
             }
-            if (ctx.expr() instanceof MyLanguageParser.ParExprContext){
-
-            }
-            if (ctx.expr() instanceof MyLanguageParser.VarExprContext){
-
-            }
-            if (ctx.expr() instanceof MyLanguageParser.CompExprContext){
-
-            }
-            if (ctx.expr() instanceof MyLanguageParser.PrfExprContext){
-
-            }
-            if (ctx.expr() instanceof )
         }
-        return super.visitAssStat(ctx);
+        else {
+            System.out.println("error, variable not declared");
+        }
+        return result;
     }
 
     @Override
     public Object visitIfStat(MyLanguageParser.IfStatContext ctx) {
-        return super.visitIfStat(ctx);
+        Object result = visit(ctx.expr());
+        if (exprType.get(ctx.expr()) == Type.BOOLEAN) {
+            result = visit(ctx.block(0));
+            if (ctx.block(1) != null) {
+                visit(ctx.block(1));
+            }
+        }
+        return result;
     }
 
-    @Override
-    public Object visitWhileStat(MyLanguageParser.WhileStatContext ctx) {
-        return super.visitWhileStat(ctx);
-    }
 
-    @Override
-    public Object visitForStat(MyLanguageParser.ForStatContext ctx) {
-        return super.visitForStat(ctx);
-    }
-
-    @Override
-    public Object visitBlockStat(MyLanguageParser.BlockStatContext ctx) {
-        return super.visitBlockStat(ctx);
-    }
-
-    @Override
-    public Object visitReadStat(MyLanguageParser.ReadStatContext ctx) {
-        return super.visitReadStat(ctx);
-    }
-
-    @Override
-    public Object visitPrintStat(MyLanguageParser.PrintStatContext ctx) {
-        return super.visitPrintStat(ctx);
-    }
-
-    @Override
-    public Object visitParExpr(MyLanguageParser.ParExprContext ctx) {
-        return super.visitParExpr(ctx);
-    }
-
-    @Override
-    public Object visitVarExpr(MyLanguageParser.VarExprContext ctx) {
-        return super.visitVarExpr(ctx);
-    }
-
-    @Override
-    public Object visitCompExpr(MyLanguageParser.CompExprContext ctx) {
-        return super.visitCompExpr(ctx);
-    }
-
-    @Override
-    public Object visitPrfExpr(MyLanguageParser.PrfExprContext ctx) {
-        return super.visitPrfExpr(ctx);
-    }
-
-    @Override
-    public Object visitBoolExpr(MyLanguageParser.BoolExprContext ctx) {
-        return super.visitBoolExpr(ctx);
-    }
-
-    @Override
-    public Object visitMultExpr(MyLanguageParser.MultExprContext ctx) {
-        return super.visitMultExpr(ctx);
-    }
 
     @Override
     public Object visitNumExpr(MyLanguageParser.NumExprContext ctx) {
-        return super.visitNumExpr(ctx);
-    }
-
-    @Override
-    public Object visitPlusExpr(MyLanguageParser.PlusExprContext ctx) {
-        return super.visitPlusExpr(ctx);
-    }
-
-    @Override
-    public Object visitType(MyLanguageParser.TypeContext ctx) {
-        return super.visitType(ctx);
-    }
-
-    @Override
-    public Object visitPrfOp(MyLanguageParser.PrfOpContext ctx) {
-        return super.visitPrfOp(ctx);
-    }
-
-    @Override
-    public Object visitMultOp(MyLanguageParser.MultOpContext ctx) {
-        return super.visitMultOp(ctx);
-    }
-
-    @Override
-    public Object visitPlusOp(MyLanguageParser.PlusOpContext ctx) {
-        return super.visitPlusOp(ctx);
-    }
-
-    @Override
-    public Object visitBoolOp(MyLanguageParser.BoolOpContext ctx) {
-        return super.visitBoolOp(ctx);
-    }
-
-    @Override
-    public Object visitCompOp(MyLanguageParser.CompOpContext ctx) {
-        return super.visitCompOp(ctx);
+        exprType.put(ctx, Type.INTEGER);
+        return Integer.parseInt(ctx.getText());
     }
 }
