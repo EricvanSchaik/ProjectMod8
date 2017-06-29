@@ -14,13 +14,13 @@ public class MyVisitor extends MyLanguageBaseVisitor {
 
     private Map<String, Integer> scope = new HashMap<>();
     private Map<String, Type> varType = new HashMap<>();
-    private Map<MyLanguageParser.ExprContext, Type> exprType = new HashMap<>();
+    private Map<String, Type> exprType = new HashMap<>();
     private Integer scopeLevel = 0;
 
     public static void main(String[] args) {
         MyVisitor visitor = new MyVisitor();
         try {
-            System.out.println(visitor.traverse("class hoi; int x = 1;"));
+            System.out.println(visitor.traverse("class hoi; int i = 0; while ( i < 3 ) { i = i + 1; };"));
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -32,7 +32,11 @@ public class MyVisitor extends MyLanguageBaseVisitor {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         MyLanguageParser parser = new MyLanguageParser(tokens);
         ParseTree tree = parser.program();
-        return visit(tree);
+        Object result = visit(tree);
+        System.out.println(scope.toString());
+        System.out.println(varType.toString());
+        System.out.println(exprType.toString());
+        return result;
     }
 
     @Override
@@ -57,10 +61,10 @@ public class MyVisitor extends MyLanguageBaseVisitor {
         }
         else {
             scope.put(ctx.ID().getText(), scopeLevel);
-            if (ctx.type().getText().equals("int") && exprType.get(ctx.expr()) == Type.INTEGER) {
+            if (ctx.type().getText().equals("int") && exprType.get(ctx.expr().getText()) == Type.INTEGER) {
                 varType.put(ctx.ID().getText(), Type.INTEGER);
             }
-            else if (exprType.get(ctx.expr()) == Type.BOOLEAN) {
+            else if (exprType.get(ctx.expr().getText()) == Type.BOOLEAN) {
                 varType.put(ctx.ID().getText(), Type.BOOLEAN);
             }
             else {
@@ -74,7 +78,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitAssStat(MyLanguageParser.AssStatContext ctx) {
         Object result = visit(ctx.expr());
         if (scope.containsKey(ctx.ID().getText())) {
-            if (!(varType.get(ctx.ID().getText()) == exprType.get(ctx.expr()))) {
+            if (!(varType.get(ctx.ID().getText()) == exprType.get(ctx.expr().getText()))) {
                 System.out.println("error, wrong type");
             }
         }
@@ -87,7 +91,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     @Override
     public Object visitIfStat(MyLanguageParser.IfStatContext ctx) {
         Object result = visit(ctx.expr());
-        if (exprType.get(ctx.expr()) == Type.BOOLEAN) {
+        if (exprType.get(ctx.expr().getText()) == Type.BOOLEAN) {
             result = visit(ctx.block(0));
             if (ctx.block(1) != null) {
                 visit(ctx.block(1));
@@ -102,7 +106,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     @Override
     public Object visitWhileStat(MyLanguageParser.WhileStatContext ctx) {
         Object result = visit(ctx.expr());
-        if (exprType.get(ctx.expr()) == Type.BOOLEAN) {
+        if (exprType.get(ctx.expr().getText()) == Type.BOOLEAN) {
             result = visit(ctx.block());
         }
         else {
@@ -161,7 +165,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
 
     @Override
     public Object visitPrfExpr(MyLanguageParser.PrfExprContext ctx) {
-        exprType.put(ctx, exprType.get(ctx.expr()));
+        exprType.put(ctx.getText(), exprType.get(ctx.expr().getText()));
         return visit(ctx.expr());
     }
 
@@ -169,11 +173,11 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitMultExpr(MyLanguageParser.MultExprContext ctx) {
         Object result = visit(ctx.expr(0));
         visit(ctx.expr(1));
-        if (!(exprType.get(ctx.expr(0)) == Type.INTEGER && exprType.get(ctx.expr(1)) == Type.INTEGER)) {
+        if (!(exprType.get(ctx.expr(0).getText()) == Type.INTEGER && exprType.get(ctx.expr(1).getText()) == Type.INTEGER)) {
             System.out.println("error, multiplication needs integers");
         }
         else {
-            exprType.put(ctx, Type.INTEGER);
+            exprType.put(ctx.getText(), Type.INTEGER);
         }
         return result;
     }
@@ -182,11 +186,11 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitPlusExpr(MyLanguageParser.PlusExprContext ctx) {
         Object result = visit(ctx.expr(0));
         visit(ctx.expr(1));
-        if (!(exprType.get(ctx.expr(0)) == Type.INTEGER && exprType.get(ctx.expr(1)) == Type.INTEGER)) {
+        if (!(exprType.get(ctx.expr(0).getText()) == Type.INTEGER && exprType.get(ctx.expr(1).getText()) == Type.INTEGER)) {
             System.out.println("error, addition needs integers");
         }
         else {
-            exprType.put(ctx, Type.INTEGER);
+            exprType.put(ctx.getText(), Type.INTEGER);
         }
         return result;
     }
@@ -195,11 +199,11 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitCompExpr(MyLanguageParser.CompExprContext ctx) {
         Object result = visit(ctx.expr(0));
         visit(ctx.expr(1));
-        if (!(exprType.get(ctx.expr(0)) == Type.INTEGER && exprType.get(ctx.expr(1)) == Type.INTEGER)) {
+        if (!(exprType.get(ctx.expr(0).getText()) == Type.INTEGER && exprType.get(ctx.expr(1).getText()) == Type.INTEGER)) {
             System.out.println("error, comparison needs integers");
         }
         else {
-            exprType.put(ctx, Type.BOOLEAN);
+            exprType.put(ctx.getText(), Type.BOOLEAN);
         }
         return result;
     }
@@ -208,11 +212,11 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitBoolExpr(MyLanguageParser.BoolExprContext ctx) {
         Object result = visit(ctx.expr(0));
         visit(ctx.expr(1));
-        if (!(exprType.get(ctx.expr(0)) == Type.BOOLEAN && exprType.get(ctx.expr(1)) == Type.BOOLEAN)) {
+        if (!(exprType.get(ctx.expr(0).getText()) == Type.BOOLEAN && exprType.get(ctx.expr(1).getText()) == Type.BOOLEAN)) {
             System.out.println("error, operator needs booleans");
         }
         else {
-            exprType.put(ctx, Type.BOOLEAN);
+            exprType.put(ctx.getText(), Type.BOOLEAN);
         }
         return result;
     }
@@ -220,7 +224,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     @Override
     public Object visitParExpr(MyLanguageParser.ParExprContext ctx) {
         Object result = visit(ctx.expr());
-        exprType.put(ctx, exprType.get(ctx.expr()));
+        exprType.put(ctx.getText(), exprType.get(ctx.expr().getText()));
         return result;
     }
 
@@ -230,20 +234,20 @@ public class MyVisitor extends MyLanguageBaseVisitor {
             System.out.println("error, variable not declared");
         }
         else {
-            exprType.put(ctx, varType.get(ctx.getText()));
+            exprType.put(ctx.getText(), varType.get(ctx.getText()));
         }
         return super.visitVarExpr(ctx);
     }
 
     @Override
     public Object visitBooleanExpr(MyLanguageParser.BooleanExprContext ctx) {
-        exprType.put(ctx, Type.BOOLEAN);
+        exprType.put(ctx.getText(), Type.BOOLEAN);
         return super.visitBooleanExpr(ctx);
     }
 
     @Override
     public Object visitNumExpr(MyLanguageParser.NumExprContext ctx) {
-        exprType.put(ctx, Type.INTEGER);
+        exprType.put(ctx.getText(), Type.INTEGER);
         return Integer.parseInt(ctx.getText());
     }
 }
