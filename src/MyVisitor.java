@@ -52,11 +52,11 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     @Override
     public Object visitDeclStat(MyLanguageParser.DeclStatContext ctx) {
         Object result = visit(ctx.expr());
-        if (scope.containsKey(ctx.ID().toString())) {
+        if (scope.containsKey(ctx.ID().getText())) {
             System.out.println("error, duplicate declaration");
         }
         else {
-            scope.put(ctx.ID().toString(), scopeLevel);
+            scope.put(ctx.ID().getText(), scopeLevel);
             if (ctx.type().getText().equals("int") && exprType.get(ctx.expr()) == Type.INTEGER) {
                 varType.put(ctx.ID().getText(), Type.INTEGER);
             }
@@ -73,7 +73,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     @Override
     public Object visitAssStat(MyLanguageParser.AssStatContext ctx) {
         Object result = visit(ctx.expr());
-        if (scope.containsKey(ctx.ID())) {
+        if (scope.containsKey(ctx.ID().getText())) {
             if (!(varType.get(ctx.ID().getText()) == exprType.get(ctx.expr()))) {
                 System.out.println("error, wrong type");
             }
@@ -93,10 +93,57 @@ public class MyVisitor extends MyLanguageBaseVisitor {
                 visit(ctx.block(1));
             }
         }
+        else {
+            System.out.println("error, wrong condition");
+        }
         return result;
     }
 
+    @Override
+    public Object visitWhileStat(MyLanguageParser.WhileStatContext ctx) {
+        Object result = visit(ctx.expr());
+        if (exprType.get(ctx.expr()) == Type.BOOLEAN) {
+            result = visit(ctx.block());
+        }
+        else {
+            System.out.println("error, wrong condition");
+        }
+        return result;
+    }
 
+    @Override
+    public Object visitForStat(MyLanguageParser.ForStatContext ctx) {
+        Object result = visit(ctx.block());
+        if (scope.get(ctx.ID().getText()) != null) {
+            System.out.println("error, variable already declared");
+        }
+        else {
+            scope.put(ctx.ID().getText(), scopeLevel + 1);
+            varType.put(ctx.ID().getText(), Type.INTEGER);
+        }
+        return result;
+    }
+
+    @Override
+    public Object visitBlockStat(MyLanguageParser.BlockStatContext ctx) {
+        return visit(ctx.block());
+    }
+
+    @Override
+    public Object visitBlock(MyLanguageParser.BlockContext ctx) {
+        Object result = null;
+        scopeLevel++;
+        for (MyLanguageParser.StatContext stat : ctx.stat()) {
+            result = visit(stat);
+        }
+        for (String id : scope.keySet()) {
+            if (scope.get(id).equals(scopeLevel)) {
+                scope.remove(id);
+            }
+        }
+        scopeLevel--;
+        return result;
+    }
 
     @Override
     public Object visitNumExpr(MyLanguageParser.NumExprContext ctx) {
