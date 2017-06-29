@@ -146,6 +146,102 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     }
 
     @Override
+    public Object visitReadStat(MyLanguageParser.ReadStatContext ctx) {
+        if (scope.get(ctx.ID().getText()) == null) {
+            scope.put(ctx.ID().getText(), scopeLevel);
+            varType.put(ctx.ID().getText(), Type.INTEGER);
+        }
+        else {
+            if (varType.get(ctx.ID().getText()) != Type.INTEGER) {
+                System.out.println("error, wrong variable type");
+            }
+        }
+        return super.visitReadStat(ctx);
+    }
+
+    @Override
+    public Object visitPrfExpr(MyLanguageParser.PrfExprContext ctx) {
+        exprType.put(ctx, exprType.get(ctx.expr()));
+        return visit(ctx.expr());
+    }
+
+    @Override
+    public Object visitMultExpr(MyLanguageParser.MultExprContext ctx) {
+        Object result = visit(ctx.expr(0));
+        visit(ctx.expr(1));
+        if (!(exprType.get(ctx.expr(0)) == Type.INTEGER && exprType.get(ctx.expr(1)) == Type.INTEGER)) {
+            System.out.println("error, multiplication needs integers");
+        }
+        else {
+            exprType.put(ctx, Type.INTEGER);
+        }
+        return result;
+    }
+
+    @Override
+    public Object visitPlusExpr(MyLanguageParser.PlusExprContext ctx) {
+        Object result = visit(ctx.expr(0));
+        visit(ctx.expr(1));
+        if (!(exprType.get(ctx.expr(0)) == Type.INTEGER && exprType.get(ctx.expr(1)) == Type.INTEGER)) {
+            System.out.println("error, addition needs integers");
+        }
+        else {
+            exprType.put(ctx, Type.INTEGER);
+        }
+        return result;
+    }
+
+    @Override
+    public Object visitCompExpr(MyLanguageParser.CompExprContext ctx) {
+        Object result = visit(ctx.expr(0));
+        visit(ctx.expr(1));
+        if (!(exprType.get(ctx.expr(0)) == Type.INTEGER && exprType.get(ctx.expr(1)) == Type.INTEGER)) {
+            System.out.println("error, comparison needs integers");
+        }
+        else {
+            exprType.put(ctx, Type.BOOLEAN);
+        }
+        return result;
+    }
+
+    @Override
+    public Object visitBoolExpr(MyLanguageParser.BoolExprContext ctx) {
+        Object result = visit(ctx.expr(0));
+        visit(ctx.expr(1));
+        if (!(exprType.get(ctx.expr(0)) == Type.BOOLEAN && exprType.get(ctx.expr(1)) == Type.BOOLEAN)) {
+            System.out.println("error, operator needs booleans");
+        }
+        else {
+            exprType.put(ctx, Type.BOOLEAN);
+        }
+        return result;
+    }
+
+    @Override
+    public Object visitParExpr(MyLanguageParser.ParExprContext ctx) {
+        Object result = visit(ctx.expr());
+        exprType.put(ctx, exprType.get(ctx.expr()));
+        return result;
+    }
+
+    @Override
+    public Object visitVarExpr(MyLanguageParser.VarExprContext ctx) {
+        if (!(scope.containsKey(ctx.getText()))) {
+            System.out.println("error, variable not declared");
+        }
+        else {
+            exprType.put(ctx, varType.get(ctx.getText()));
+        }
+        return super.visitVarExpr(ctx);
+    }
+
+    @Override
+    public Object visitBooleanExpr(MyLanguageParser.BooleanExprContext ctx) {
+        exprType.put(ctx, Type.BOOLEAN);
+        return super.visitBooleanExpr(ctx);
+    }
+
+    @Override
     public Object visitNumExpr(MyLanguageParser.NumExprContext ctx) {
         exprType.put(ctx, Type.INTEGER);
         return Integer.parseInt(ctx.getText());

@@ -23,7 +23,7 @@ expr :  prfOp expr                                                          # pr
         | expr boolOp expr                                                  # boolExpr
         | LEFT expr RIGHT                                                   # parExpr
         | ID                                                                # varExpr
-        | BOOL                                                              # boolExpr
+        | BOOL                                                              # booleanExpr
         | NUMBER                                                            # numExpr
         ;
 

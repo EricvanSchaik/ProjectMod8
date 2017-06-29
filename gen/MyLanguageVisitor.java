@@ -98,6 +98,13 @@ public interface MyLanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVarExpr(MyLanguageParser.VarExprContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code booleanExpr}
+	 * labeled alternative in {@link MyLanguageParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBooleanExpr(MyLanguageParser.BooleanExprContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code compExpr}
 	 * labeled alternative in {@link MyLanguageParser#expr}.
 	 * @param ctx the parse tree
