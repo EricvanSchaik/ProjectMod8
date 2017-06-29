@@ -35,6 +35,60 @@ public class MyVisitor extends MyLanguageBaseVisitor {
         return visit(tree);
     }
 
+    public Object instanceStat(MyLanguageParser.StatContext stat) {
+        if (stat instanceof MyLanguageParser.DeclStatContext) {
+            return visitDeclStat((MyLanguageParser.DeclStatContext) stat);
+        }
+        if (stat instanceof MyLanguageParser.AssStatContext) {
+            return visitAssStat((MyLanguageParser.AssStatContext) stat);
+        }
+        if (stat instanceof MyLanguageParser.IfStatContext) {
+            return visitIfStat((MyLanguageParser.IfStatContext) stat);
+        }
+        if (stat instanceof MyLanguageParser.WhileStatContext) {
+            return visitWhileStat((MyLanguageParser.WhileStatContext) stat);
+        }
+        if (stat instanceof MyLanguageParser.ForStatContext) {
+            return visitForStat((MyLanguageParser.ForStatContext) stat);
+        }
+        if (stat instanceof MyLanguageParser.BlockStatContext) {
+            return visitBlockStat((MyLanguageParser.BlockStatContext) stat);
+        }
+        if (stat instanceof MyLanguageParser.ReadStatContext) {
+            return visitReadStat((MyLanguageParser.ReadStatContext) stat);
+        }
+        else { //(stat instanceof MyLanguageParser.PrintStatContext)
+            return visitPrintStat((MyLanguageParser.PrintStatContext) stat);
+        }
+    }
+
+    public Object instanceExpr (MyLanguageParser.ExprContext expr) {
+        if (expr instanceof MyLanguageParser.ParExprContext){
+            return visitParExpr((MyLanguageParser.ParExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.VarExprContext){
+            return visitVarExpr((MyLanguageParser.VarExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.CompExprContext){
+            return visitCompExpr((MyLanguageParser.CompExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.PrfExprContext){
+            return visitPrfExpr((MyLanguageParser.PrfExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.BoolExprContext){
+            return visitBoolExpr((MyLanguageParser.BoolExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.MultExprContext){
+            return visitMultExpr((MyLanguageParser.MultExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.NumExprContext){
+            return visitNumExpr((MyLanguageParser.NumExprContext) expr);
+        }
+        else { //(expr instanceof MyLanguageParser.PlusExprContext)
+            return visitPlusExpr((MyLanguageParser.PlusExprContext) expr);
+        }
+    }
+
     @Override
     public Object visitProgram(MyLanguageParser.ProgramContext ctx) {
         return visitBody(ctx.body());
@@ -44,30 +98,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitBody(MyLanguageParser.BodyContext ctx) {
         Object result = null;
         for (MyLanguageParser.StatContext stat : ctx.stat()) {
-            if (stat instanceof MyLanguageParser.DeclStatContext) {
-                 result = visitDeclStat((MyLanguageParser.DeclStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.AssStatContext) {
-                result = visitAssStat((MyLanguageParser.AssStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.IfStatContext) {
-                result = visitIfStat((MyLanguageParser.IfStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.WhileStatContext) {
-                result = visitWhileStat((MyLanguageParser.WhileStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.ForStatContext) {
-                result = visitForStat((MyLanguageParser.ForStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.BlockStatContext) {
-                result = visitBlockStat((MyLanguageParser.BlockStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.ReadStatContext) {
-                result = visitReadStat((MyLanguageParser.ReadStatContext) stat);
-            }
-            if (stat instanceof MyLanguageParser.PrintStatContext) {
-                result = visitPrintStat((MyLanguageParser.PrintStatContext) stat);
-            }
+            result = instanceStat(stat);
         }
         return result;
     }
@@ -80,29 +111,24 @@ public class MyVisitor extends MyLanguageBaseVisitor {
         else {
             scope.put(ctx.ID().toString(), scopeLevel);
         }
-        type.put(ctx.ID().toString(), ctx.type());
+        Object exprType = instanceExpr(ctx.expr());
+        if (ctx.type() == exprType) {
+            type.put(ctx.ID().toString(), ctx.type());
+        }
+        else {
+            System.out.println("error, expected: " + ctx.type() + ", actual: " + exprType);
+        }
         return null;
     }
 
     @Override
     public Object visitAssStat(MyLanguageParser.AssStatContext ctx) {
         if (scope.containsKey(ctx.ID())) {
-            switch (ctx.expr()) {
-                case instanceof MyLanguageParser.ParExprContext :
-            }
-            if (ctx.expr() instanceof MyLanguageParser.ParExprContext){
-
-            }
-            if (ctx.expr() instanceof MyLanguageParser.VarExprContext){
-
-            }
-            if (ctx.expr() instanceof MyLanguageParser.CompExprContext){
-
-            }
-            if (ctx.expr() instanceof MyLanguageParser.PrfExprContext){
-
-            }
-            if (ctx.expr() instanceof )
+            MyLanguageParser.ExprContext expr = ctx.expr();
+            Object type;
+        }
+        if (type.get(ctx.ID())!=type) {
+            System.out.println("error, expected: " + type.get(ctx.ID()) + "actual: " + type);
         }
         return super.visitAssStat(ctx);
     }
@@ -139,11 +165,43 @@ public class MyVisitor extends MyLanguageBaseVisitor {
 
     @Override
     public Object visitParExpr(MyLanguageParser.ParExprContext ctx) {
-        return super.visitParExpr(ctx);
+        MyLanguageParser.ExprContext expr = ctx.expr();
+        Object type;
+        if (expr instanceof MyLanguageParser.ParExprContext){
+            type = visitParExpr((MyLanguageParser.ParExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.VarExprContext){
+            type = visitVarExpr((MyLanguageParser.VarExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.CompExprContext){
+            type = visitCompExpr((MyLanguageParser.CompExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.PrfExprContext){
+            type = visitPrfExpr((MyLanguageParser.PrfExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.BoolExprContext){
+            type = visitBoolExpr((MyLanguageParser.BoolExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.MultExprContext){
+            type = visitMultExpr((MyLanguageParser.MultExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.NumExprContext){
+            type = visitNumExpr((MyLanguageParser.NumExprContext) expr);
+        }
+        if (expr instanceof MyLanguageParser.PlusExprContext){
+            type = visitPlusExpr((MyLanguageParser.PlusExprContext) expr);
+        }
+
     }
 
     @Override
     public Object visitVarExpr(MyLanguageParser.VarExprContext ctx) {
+        if (type.containsKey(ctx.ID())){
+            return type.get(ctx.ID());
+        }
+        else {
+            System.out.println("error, variable not in scope");
+        }
         return super.visitVarExpr(ctx);
     }
 
