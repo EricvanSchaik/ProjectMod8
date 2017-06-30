@@ -4,6 +4,10 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,6 +95,28 @@ public class MyVisitor extends MyLanguageBaseVisitor {
 
     @Override
     public Object visitProgram(MyLanguageParser.ProgramContext ctx) {
+        String className = ctx.ID().toString();
+        try {
+            File prIl = new File("C:\\Users\\Birte\\IdeaProjects\\ProjectMod8\\src\\" + className + ".hs");
+            if (prIl.createNewFile()){
+                System.out.println("File is created!");
+                FileWriter fw = new FileWriter(prIl, true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                bw.write("Some text here for a reason");
+                bw.flush();
+                bw.close();
+                fw = new FileWriter(prIl, true);
+                BufferedWriter bw2 = new BufferedWriter(fw);
+                bw2.newLine();
+                bw2.write("kldjfa");
+                bw2.flush();
+                bw2.close();
+            }else{
+                System.out.println("File already exists.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return visitBody(ctx.body());
     }
 
@@ -167,31 +193,31 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitParExpr(MyLanguageParser.ParExprContext ctx) {
         MyLanguageParser.ExprContext expr = ctx.expr();
         Object type;
-        if (expr instanceof MyLanguageParser.ParExprContext){
+        if (expr instanceof MyLanguageParser.ParExprContext) {
             type = visitParExpr((MyLanguageParser.ParExprContext) expr);
         }
-        if (expr instanceof MyLanguageParser.VarExprContext){
+        if (expr instanceof MyLanguageParser.VarExprContext) {
             type = visitVarExpr((MyLanguageParser.VarExprContext) expr);
         }
-        if (expr instanceof MyLanguageParser.CompExprContext){
+        if (expr instanceof MyLanguageParser.CompExprContext) {
             type = visitCompExpr((MyLanguageParser.CompExprContext) expr);
         }
-        if (expr instanceof MyLanguageParser.PrfExprContext){
+        if (expr instanceof MyLanguageParser.PrfExprContext) {
             type = visitPrfExpr((MyLanguageParser.PrfExprContext) expr);
         }
-        if (expr instanceof MyLanguageParser.BoolExprContext){
+        if (expr instanceof MyLanguageParser.BoolExprContext) {
             type = visitBoolExpr((MyLanguageParser.BoolExprContext) expr);
         }
-        if (expr instanceof MyLanguageParser.MultExprContext){
+        if (expr instanceof MyLanguageParser.MultExprContext) {
             type = visitMultExpr((MyLanguageParser.MultExprContext) expr);
         }
-        if (expr instanceof MyLanguageParser.NumExprContext){
+        if (expr instanceof MyLanguageParser.NumExprContext) {
             type = visitNumExpr((MyLanguageParser.NumExprContext) expr);
         }
-        if (expr instanceof MyLanguageParser.PlusExprContext){
+        else {// (expr instanceof MyLanguageParser.PlusExprContext) {
             type = visitPlusExpr((MyLanguageParser.PlusExprContext) expr);
         }
-
+        return type;
     }
 
     @Override
