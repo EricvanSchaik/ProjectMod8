@@ -697,6 +697,23 @@ public class MyLanguageParser extends Parser {
 			else return visitor.visitChildren(this);
 		}
 	}
+	public static class BooleanExprContext extends ExprContext {
+		public TerminalNode BOOL() { return getToken(MyLanguageParser.BOOL, 0); }
+		public BooleanExprContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MyLanguageListener ) ((MyLanguageListener)listener).enterBooleanExpr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MyLanguageListener ) ((MyLanguageListener)listener).exitBooleanExpr(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof MyLanguageVisitor ) return ((MyLanguageVisitor<? extends T>)visitor).visitBooleanExpr(this);
+			else return visitor.visitChildren(this);
+		}
+	}
 	public static class CompExprContext extends ExprContext {
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -745,7 +762,6 @@ public class MyLanguageParser extends Parser {
 		}
 	}
 	public static class BoolExprContext extends ExprContext {
-		public TerminalNode BOOL() { return getToken(MyLanguageParser.BOOL, 0); }
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
 		}
@@ -893,7 +909,7 @@ public class MyLanguageParser extends Parser {
 				break;
 			case BOOL:
 				{
-				_localctx = new BoolExprContext(_localctx);
+				_localctx = new BooleanExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(100);

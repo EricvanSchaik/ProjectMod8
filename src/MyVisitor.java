@@ -1,13 +1,8 @@
-import jdk.nashorn.internal.parser.TokenStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,14 +12,15 @@ import java.util.Map;
  */
 public class MyVisitor extends MyLanguageBaseVisitor {
 
-    private Map<String,Integer> scope = new HashMap<String,Integer>();
-    private Map<String, MyLanguageParser.TypeContext> type = new HashMap<String,MyLanguageParser.TypeContext>();
+    private Map<String, Integer> scope = new HashMap<>();
+    private Map<String, Type> varType = new HashMap<>();
+    private Map<String, Type> exprType = new HashMap<>();
     private Integer scopeLevel = 0;
 
     public static void main(String[] args) {
         MyVisitor visitor = new MyVisitor();
         try {
-            System.out.println(visitor.traverse("class hoi; int x = 0; boolean x = 0;"));
+            System.out.println(visitor.traverse("class hoi; int i = 0; while ( i < 3 ) { i = i + 1; };"));
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -36,87 +32,15 @@ public class MyVisitor extends MyLanguageBaseVisitor {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         MyLanguageParser parser = new MyLanguageParser(tokens);
         ParseTree tree = parser.program();
-        return visit(tree);
-    }
-
-    public Object instanceStat(MyLanguageParser.StatContext stat) {
-        if (stat instanceof MyLanguageParser.DeclStatContext) {
-            return visitDeclStat((MyLanguageParser.DeclStatContext) stat);
-        }
-        if (stat instanceof MyLanguageParser.AssStatContext) {
-            return visitAssStat((MyLanguageParser.AssStatContext) stat);
-        }
-        if (stat instanceof MyLanguageParser.IfStatContext) {
-            return visitIfStat((MyLanguageParser.IfStatContext) stat);
-        }
-        if (stat instanceof MyLanguageParser.WhileStatContext) {
-            return visitWhileStat((MyLanguageParser.WhileStatContext) stat);
-        }
-        if (stat instanceof MyLanguageParser.ForStatContext) {
-            return visitForStat((MyLanguageParser.ForStatContext) stat);
-        }
-        if (stat instanceof MyLanguageParser.BlockStatContext) {
-            return visitBlockStat((MyLanguageParser.BlockStatContext) stat);
-        }
-        if (stat instanceof MyLanguageParser.ReadStatContext) {
-            return visitReadStat((MyLanguageParser.ReadStatContext) stat);
-        }
-        else { //(stat instanceof MyLanguageParser.PrintStatContext)
-            return visitPrintStat((MyLanguageParser.PrintStatContext) stat);
-        }
-    }
-
-    public Object instanceExpr (MyLanguageParser.ExprContext expr) {
-        if (expr instanceof MyLanguageParser.ParExprContext){
-            return visitParExpr((MyLanguageParser.ParExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.VarExprContext){
-            return visitVarExpr((MyLanguageParser.VarExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.CompExprContext){
-            return visitCompExpr((MyLanguageParser.CompExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.PrfExprContext){
-            return visitPrfExpr((MyLanguageParser.PrfExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.BoolExprContext){
-            return visitBoolExpr((MyLanguageParser.BoolExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.MultExprContext){
-            return visitMultExpr((MyLanguageParser.MultExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.NumExprContext){
-            return visitNumExpr((MyLanguageParser.NumExprContext) expr);
-        }
-        else { //(expr instanceof MyLanguageParser.PlusExprContext)
-            return visitPlusExpr((MyLanguageParser.PlusExprContext) expr);
-        }
+        Object result = visit(tree);
+        System.out.println(scope.toString());
+        System.out.println(varType.toString());
+        System.out.println(exprType.toString());
+        return result;
     }
 
     @Override
     public Object visitProgram(MyLanguageParser.ProgramContext ctx) {
-        String className = ctx.ID().toString();
-        try {
-            File prIl = new File("C:\\Users\\Birte\\IdeaProjects\\ProjectMod8\\src\\" + className + ".hs");
-            if (prIl.createNewFile()){
-                System.out.println("File is created!");
-                FileWriter fw = new FileWriter(prIl, true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                bw.write("Some text here for a reason");
-                bw.flush();
-                bw.close();
-                fw = new FileWriter(prIl, true);
-                BufferedWriter bw2 = new BufferedWriter(fw);
-                bw2.newLine();
-                bw2.write("kldjfa");
-                bw2.flush();
-                bw2.close();
-            }else{
-                System.out.println("File already exists.");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         return visitBody(ctx.body());
     }
 
@@ -124,170 +48,206 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitBody(MyLanguageParser.BodyContext ctx) {
         Object result = null;
         for (MyLanguageParser.StatContext stat : ctx.stat()) {
-            result = instanceStat(stat);
+            result = visit(stat);
         }
         return result;
     }
 
     @Override
     public Object visitDeclStat(MyLanguageParser.DeclStatContext ctx) {
-        if (scope.containsKey(ctx.ID().toString())) {
+        Object result = visit(ctx.expr());
+        if (scope.containsKey(ctx.ID().getText())) {
             System.out.println("error, duplicate declaration");
         }
         else {
-            scope.put(ctx.ID().toString(), scopeLevel);
+            scope.put(ctx.ID().getText(), scopeLevel);
+            if (ctx.type().getText().equals("int") && exprType.get(ctx.expr().getText()) == Type.INTEGER) {
+                varType.put(ctx.ID().getText(), Type.INTEGER);
+            }
+            else if (exprType.get(ctx.expr().getText()) == Type.BOOLEAN) {
+                varType.put(ctx.ID().getText(), Type.BOOLEAN);
+            }
+            else {
+                System.out.println("error, wrong type");
+            }
         }
-        Object exprType = instanceExpr(ctx.expr());
-        if (ctx.type() == exprType) {
-            type.put(ctx.ID().toString(), ctx.type());
-        }
-        else {
-            System.out.println("error, expected: " + ctx.type() + ", actual: " + exprType);
-        }
-        return null;
+        return result;
     }
 
     @Override
     public Object visitAssStat(MyLanguageParser.AssStatContext ctx) {
-        if (scope.containsKey(ctx.ID())) {
-            MyLanguageParser.ExprContext expr = ctx.expr();
-            Object type;
+        Object result = visit(ctx.expr());
+        if (scope.containsKey(ctx.ID().getText())) {
+            if (!(varType.get(ctx.ID().getText()) == exprType.get(ctx.expr().getText()))) {
+                System.out.println("error, wrong type");
+            }
         }
-        if (type.get(ctx.ID())!=type) {
-            System.out.println("error, expected: " + type.get(ctx.ID()) + "actual: " + type);
+        else {
+            System.out.println("error, variable not declared");
         }
-        return super.visitAssStat(ctx);
+        return result;
     }
 
     @Override
     public Object visitIfStat(MyLanguageParser.IfStatContext ctx) {
-        return super.visitIfStat(ctx);
+        Object result = visit(ctx.expr());
+        if (exprType.get(ctx.expr().getText()) == Type.BOOLEAN) {
+            result = visit(ctx.block(0));
+            if (ctx.block(1) != null) {
+                visit(ctx.block(1));
+            }
+        }
+        else {
+            System.out.println("error, wrong condition");
+        }
+        return result;
     }
 
     @Override
     public Object visitWhileStat(MyLanguageParser.WhileStatContext ctx) {
-        return super.visitWhileStat(ctx);
+        Object result = visit(ctx.expr());
+        if (exprType.get(ctx.expr().getText()) == Type.BOOLEAN) {
+            result = visit(ctx.block());
+        }
+        else {
+            System.out.println("error, wrong condition");
+        }
+        return result;
     }
 
     @Override
     public Object visitForStat(MyLanguageParser.ForStatContext ctx) {
-        return super.visitForStat(ctx);
+        Object result = visit(ctx.block());
+        if (scope.get(ctx.ID().getText()) != null) {
+            System.out.println("error, variable already declared");
+        }
+        else {
+            scope.put(ctx.ID().getText(), scopeLevel + 1);
+            varType.put(ctx.ID().getText(), Type.INTEGER);
+        }
+        return result;
     }
 
     @Override
     public Object visitBlockStat(MyLanguageParser.BlockStatContext ctx) {
-        return super.visitBlockStat(ctx);
+        return visit(ctx.block());
+    }
+
+    @Override
+    public Object visitBlock(MyLanguageParser.BlockContext ctx) {
+        Object result = null;
+        scopeLevel++;
+        for (MyLanguageParser.StatContext stat : ctx.stat()) {
+            result = visit(stat);
+        }
+        for (String id : scope.keySet()) {
+            if (scope.get(id).equals(scopeLevel)) {
+                scope.remove(id);
+            }
+        }
+        scopeLevel--;
+        return result;
     }
 
     @Override
     public Object visitReadStat(MyLanguageParser.ReadStatContext ctx) {
+        if (scope.get(ctx.ID().getText()) == null) {
+            scope.put(ctx.ID().getText(), scopeLevel);
+            varType.put(ctx.ID().getText(), Type.INTEGER);
+        }
+        else {
+            if (varType.get(ctx.ID().getText()) != Type.INTEGER) {
+                System.out.println("error, wrong variable type");
+            }
+        }
         return super.visitReadStat(ctx);
     }
 
     @Override
-    public Object visitPrintStat(MyLanguageParser.PrintStatContext ctx) {
-        return super.visitPrintStat(ctx);
+    public Object visitPrfExpr(MyLanguageParser.PrfExprContext ctx) {
+        exprType.put(ctx.getText(), exprType.get(ctx.expr().getText()));
+        return visit(ctx.expr());
+    }
+
+    @Override
+    public Object visitMultExpr(MyLanguageParser.MultExprContext ctx) {
+        Object result = visit(ctx.expr(0));
+        visit(ctx.expr(1));
+        if (!(exprType.get(ctx.expr(0).getText()) == Type.INTEGER && exprType.get(ctx.expr(1).getText()) == Type.INTEGER)) {
+            System.out.println("error, multiplication needs integers");
+        }
+        else {
+            exprType.put(ctx.getText(), Type.INTEGER);
+        }
+        return result;
+    }
+
+    @Override
+    public Object visitPlusExpr(MyLanguageParser.PlusExprContext ctx) {
+        Object result = visit(ctx.expr(0));
+        visit(ctx.expr(1));
+        if (!(exprType.get(ctx.expr(0).getText()) == Type.INTEGER && exprType.get(ctx.expr(1).getText()) == Type.INTEGER)) {
+            System.out.println("error, addition needs integers");
+        }
+        else {
+            exprType.put(ctx.getText(), Type.INTEGER);
+        }
+        return result;
+    }
+
+    @Override
+    public Object visitCompExpr(MyLanguageParser.CompExprContext ctx) {
+        Object result = visit(ctx.expr(0));
+        visit(ctx.expr(1));
+        if (!(exprType.get(ctx.expr(0).getText()) == Type.INTEGER && exprType.get(ctx.expr(1).getText()) == Type.INTEGER)) {
+            System.out.println("error, comparison needs integers");
+        }
+        else {
+            exprType.put(ctx.getText(), Type.BOOLEAN);
+        }
+        return result;
+    }
+
+    @Override
+    public Object visitBoolExpr(MyLanguageParser.BoolExprContext ctx) {
+        Object result = visit(ctx.expr(0));
+        visit(ctx.expr(1));
+        if (!(exprType.get(ctx.expr(0).getText()) == Type.BOOLEAN && exprType.get(ctx.expr(1).getText()) == Type.BOOLEAN)) {
+            System.out.println("error, operator needs booleans");
+        }
+        else {
+            exprType.put(ctx.getText(), Type.BOOLEAN);
+        }
+        return result;
     }
 
     @Override
     public Object visitParExpr(MyLanguageParser.ParExprContext ctx) {
-        MyLanguageParser.ExprContext expr = ctx.expr();
-        Object type;
-        if (expr instanceof MyLanguageParser.ParExprContext) {
-            type = visitParExpr((MyLanguageParser.ParExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.VarExprContext) {
-            type = visitVarExpr((MyLanguageParser.VarExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.CompExprContext) {
-            type = visitCompExpr((MyLanguageParser.CompExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.PrfExprContext) {
-            type = visitPrfExpr((MyLanguageParser.PrfExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.BoolExprContext) {
-            type = visitBoolExpr((MyLanguageParser.BoolExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.MultExprContext) {
-            type = visitMultExpr((MyLanguageParser.MultExprContext) expr);
-        }
-        if (expr instanceof MyLanguageParser.NumExprContext) {
-            type = visitNumExpr((MyLanguageParser.NumExprContext) expr);
-        }
-        else {// (expr instanceof MyLanguageParser.PlusExprContext) {
-            type = visitPlusExpr((MyLanguageParser.PlusExprContext) expr);
-        }
-        return type;
+        Object result = visit(ctx.expr());
+        exprType.put(ctx.getText(), exprType.get(ctx.expr().getText()));
+        return result;
     }
 
     @Override
     public Object visitVarExpr(MyLanguageParser.VarExprContext ctx) {
-        if (type.containsKey(ctx.ID())){
-            return type.get(ctx.ID());
+        if (!(scope.containsKey(ctx.getText()))) {
+            System.out.println("error, variable not declared");
         }
         else {
-            System.out.println("error, variable not in scope");
+            exprType.put(ctx.getText(), varType.get(ctx.getText()));
         }
         return super.visitVarExpr(ctx);
     }
 
     @Override
-    public Object visitCompExpr(MyLanguageParser.CompExprContext ctx) {
-        return super.visitCompExpr(ctx);
-    }
-
-    @Override
-    public Object visitPrfExpr(MyLanguageParser.PrfExprContext ctx) {
-        return super.visitPrfExpr(ctx);
-    }
-
-    @Override
-    public Object visitBoolExpr(MyLanguageParser.BoolExprContext ctx) {
-        return super.visitBoolExpr(ctx);
-    }
-
-    @Override
-    public Object visitMultExpr(MyLanguageParser.MultExprContext ctx) {
-        return super.visitMultExpr(ctx);
+    public Object visitBooleanExpr(MyLanguageParser.BooleanExprContext ctx) {
+        exprType.put(ctx.getText(), Type.BOOLEAN);
+        return super.visitBooleanExpr(ctx);
     }
 
     @Override
     public Object visitNumExpr(MyLanguageParser.NumExprContext ctx) {
-        return super.visitNumExpr(ctx);
-    }
-
-    @Override
-    public Object visitPlusExpr(MyLanguageParser.PlusExprContext ctx) {
-        return super.visitPlusExpr(ctx);
-    }
-
-    @Override
-    public Object visitType(MyLanguageParser.TypeContext ctx) {
-        return super.visitType(ctx);
-    }
-
-    @Override
-    public Object visitPrfOp(MyLanguageParser.PrfOpContext ctx) {
-        return super.visitPrfOp(ctx);
-    }
-
-    @Override
-    public Object visitMultOp(MyLanguageParser.MultOpContext ctx) {
-        return super.visitMultOp(ctx);
-    }
-
-    @Override
-    public Object visitPlusOp(MyLanguageParser.PlusOpContext ctx) {
-        return super.visitPlusOp(ctx);
-    }
-
-    @Override
-    public Object visitBoolOp(MyLanguageParser.BoolOpContext ctx) {
-        return super.visitBoolOp(ctx);
-    }
-
-    @Override
-    public Object visitCompOp(MyLanguageParser.CompOpContext ctx) {
-        return super.visitCompOp(ctx);
+        exprType.put(ctx.getText(), Type.INTEGER);
+        return Integer.parseInt(ctx.getText());
     }
 }
