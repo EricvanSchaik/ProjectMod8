@@ -13,9 +13,9 @@ import java.util.Map;
 public class MyVisitor extends MyLanguageBaseVisitor {
 
     private Map<String, Integer> scope = new HashMap<>();
-    private Map<String, Type> varType = new HashMap<>();
     private Map<String, Type> exprType = new HashMap<>();
-    private Integer scopeLevel = 0;
+    private Map<Scope, Integer> scopes = new HashMap<>();
+    private Scope currentScope = new Scope(0);
 
     public static void main(String[] args) {
         MyVisitor visitor = new MyVisitor();
@@ -34,13 +34,44 @@ public class MyVisitor extends MyLanguageBaseVisitor {
         ParseTree tree = parser.program();
         Object result = visit(tree);
         System.out.println(scope.toString());
-        System.out.println(varType.toString());
         System.out.println(exprType.toString());
         return result;
     }
 
+    public boolean isDeclared(String id) {
+        for (Scope scope : scopes.keySet()) {
+            if (scope.contains(id)) return true;
+        }
+        return false;
+    }
+
+    public Scope getPreviousScope() {
+        for (Scope scope : scopes.keySet()) {
+            if (scopes.get(scope) == scopes.get(currentScope)-1) {
+                return scope;
+            }
+        }
+        return null;
+    }
+
+    public Type getType(String id) {
+        for (int i = scopes.size()-1; i > 0; i--) {
+            Scope scope = null;
+            for (Scope s : scopes.keySet()) {
+                if (scopes.get(s) == i) {
+                    scope = s;
+                }
+            }
+            if (scope.getType(id) != null) {
+                return scope.getType(id);
+            }
+        }
+        return null;
+    }
+
     @Override
     public Object visitProgram(MyLanguageParser.ProgramContext ctx) {
+        scopes.put(currentScope, 0);
         return visitBody(ctx.body());
     }
 
@@ -56,16 +87,15 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     @Override
     public Object visitDeclStat(MyLanguageParser.DeclStatContext ctx) {
         Object result = visit(ctx.expr());
-        if (scope.containsKey(ctx.ID().getText())) {
-            System.out.println("error, duplicate declaration");
+        if (currentScope.contains(ctx.ID().getText())) {
+            System.out.println("error, already declared in this scope");
         }
         else {
-            scope.put(ctx.ID().getText(), scopeLevel);
             if (ctx.type().getText().equals("int") && exprType.get(ctx.expr().getText()) == Type.INTEGER) {
-                varType.put(ctx.ID().getText(), Type.INTEGER);
+                currentScope.put(ctx.ID().getText(), Type.INTEGER);
             }
             else if (exprType.get(ctx.expr().getText()) == Type.BOOLEAN) {
-                varType.put(ctx.ID().getText(), Type.BOOLEAN);
+                currentScope.put(ctx.ID().getText(), Type.BOOLEAN);
             }
             else {
                 System.out.println("error, wrong type");
@@ -77,8 +107,8 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     @Override
     public Object visitAssStat(MyLanguageParser.AssStatContext ctx) {
         Object result = visit(ctx.expr());
-        if (scope.containsKey(ctx.ID().getText())) {
-            if (!(varType.get(ctx.ID().getText()) == exprType.get(ctx.expr().getText()))) {
+        if (isDeclared(ctx.ID().getText())) {
+            if (!(getType(ctx.ID().getText()) == exprType.get(ctx.expr().getText()))) {
                 System.out.println("error, wrong type");
             }
         }
@@ -117,14 +147,20 @@ public class MyVisitor extends MyLanguageBaseVisitor {
 
     @Override
     public Object visitForStat(MyLanguageParser.ForStatContext ctx) {
-        Object result = visit(ctx.block());
-        if (scope.get(ctx.ID().getText()) != null) {
+        if (isDeclared(ctx.ID().getText())) {
             System.out.println("error, variable already declared");
         }
         else {
-            scope.put(ctx.ID().getText(), scopeLevel + 1);
-            varType.put(ctx.ID().getText(), Type.INTEGER);
+            Scope newScope = new Scope(currentScope.newOffset());
+            scopes.put(newScope, scopes.get(currentScope)+1);
+            currentScope = newScope;
+//            scope.put(ctx.ID().getText(), scopeLevel + 1);
+            currentScope.put(ctx.ID().getText(), Type.INTEGER);
         }
+        Object result = visit(ctx.block());
+        Scope previousScope = getPreviousScope();
+        scopes.remove(currentScope);
+        currentScope = previousScope;
         return result;
     }
 
@@ -136,27 +172,33 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     @Override
     public Object visitBlock(MyLanguageParser.BlockContext ctx) {
         Object result = null;
-        scopeLevel++;
+//        scopeLevel++;
+        Scope newScope = new Scope(currentScope.newOffset());
+        scopes.put(newScope, scopes.get(currentScope)+1);
+        currentScope = newScope;
         for (MyLanguageParser.StatContext stat : ctx.stat()) {
             result = visit(stat);
         }
-        for (String id : scope.keySet()) {
-            if (scope.get(id).equals(scopeLevel)) {
-                scope.remove(id);
-            }
-        }
-        scopeLevel--;
+        Scope previousScope = getPreviousScope();
+        scopes.remove(currentScope);
+        currentScope = previousScope;
+//        for (String id : scope.keySet()) {
+//            if (scope.get(id).equals(scopeLevel)) {
+//                scope.remove(id);
+//            }
+//        }
+//        scopeLevel--;
         return result;
     }
 
     @Override
     public Object visitReadStat(MyLanguageParser.ReadStatContext ctx) {
-        if (scope.get(ctx.ID().getText()) == null) {
-            scope.put(ctx.ID().getText(), scopeLevel);
-            varType.put(ctx.ID().getText(), Type.INTEGER);
+        if (!isDeclared(ctx.ID().getText())) {
+            currentScope.put(ctx.ID().getText(), Type.INTEGER);
+            currentScope.put(ctx.ID().getText(), Type.INTEGER);
         }
         else {
-            if (varType.get(ctx.ID().getText()) != Type.INTEGER) {
+            if (getType(ctx.ID().getText()) != Type.INTEGER) {
                 System.out.println("error, wrong variable type");
             }
         }
@@ -234,7 +276,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
             System.out.println("error, variable not declared");
         }
         else {
-            exprType.put(ctx.getText(), varType.get(ctx.getText()));
+            exprType.put(ctx.getText(), getType(ctx.getText()));
         }
         return super.visitVarExpr(ctx);
     }
