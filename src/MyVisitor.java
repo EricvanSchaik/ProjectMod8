@@ -7,7 +7,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,12 +21,10 @@ import java.util.Map;
  */
 public class MyVisitor extends MyLanguageBaseVisitor {
 
-    private Map<String, Integer> scope = new HashMap<>();
-    private Map<String, Type> exprType = new HashMap<>();
-    private Map<Scope, Integer> scopes = new HashMap<>();
-    private Scope currentScope = new Scope(0);
+    private Map<String, Type> exprType;
+    private Map<Scope, Integer> scopes;
+    private Scope currentScope;
     private Map<String, Object> registers = new HashMap<>();
-    private Integer scopeLevel = 0;
     private List<String> instructions = new ArrayList<>();
     private Integer blockLength;
 
@@ -67,7 +64,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     }
 
     public Type getType(String id) {
-        for (int i = scopes.size()-1; i > 0; i--) {
+        for (int i = scopes.size()-1; i >= 0; i--) {
             Scope scope = null;
             for (Scope s : scopes.keySet()) {
                 if (scopes.get(s) == i) {
@@ -105,15 +102,19 @@ public class MyVisitor extends MyLanguageBaseVisitor {
 
     @Override
     public Object visitProgram(MyLanguageParser.ProgramContext ctx) {
+        exprType = new HashMap<>();
+        scopes = new HashMap<>();
+        currentScope = new Scope(0);
+        scopes.put(currentScope, 0);
         String className = ctx.ID().toString();
         String[] reg = {"regA", "regB", "regC", "regD", "regE", "regF"};
         for (String register : reg){
             registers.put(register, null);
         }
         try {
-            File prIl = new File("C:\\Users\\Birte\\IdeaProjects\\ProjectMod8\\src\\progs.hs");
+            File prIl = new File("C:\\Users\\Eric\\IdeaProjects\\ProjectMod8\\src\\progs.hs");
             if (!prIl.createNewFile()){
-                Path path = Paths.get(("C:\\Users\\Birte\\IdeaProjects\\ProjectMod8\\src\\progs.hs"));
+                Path path = Paths.get(("C:\\Users\\Eric\\IdeaProjects\\ProjectMod8\\src\\progs.hs"));
                 Files.delete(path);
             }
             FileWriter fw = new FileWriter(prIl, true);
@@ -144,7 +145,6 @@ public class MyVisitor extends MyLanguageBaseVisitor {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        scopes.put(currentScope, 0);
         return visitBody(ctx.body());
     }
 
@@ -160,8 +160,9 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     @Override
     public Object visitDeclStat(MyLanguageParser.DeclStatContext ctx) {
         Object result = visit(ctx.expr());
+        System.out.println(currentScope.offset(ctx.ID().getText()));
         if (currentScope.contains(ctx.ID().getText())) {
-            System.out.println("error, already declared in this scope");
+            System.out.println("error, " + ctx.ID().getText() + " already declared in this scope");
         }
         else {
             String reg = getreg(ctx.expr());
@@ -204,7 +205,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
             }
         }
         else {
-            System.out.println("error, variable not declared");
+            System.out.println("error, variable not declared(assignment)");
         }
         return result;
     }
@@ -255,7 +256,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
     public Object visitForStat(MyLanguageParser.ForStatContext ctx) {
         Object result = null;
         if (isDeclared(ctx.ID().getText())) {
-            System.out.println("error, variable already declared");
+            System.out.println("error, variable already declared(forstat)");
         }
         else {
             Scope newScope = new Scope(currentScope.newOffset());
@@ -489,7 +490,7 @@ public class MyVisitor extends MyLanguageBaseVisitor {
 
     @Override
     public Object visitVarExpr(MyLanguageParser.VarExprContext ctx) {
-        if (!(scope.containsKey(ctx.getText()))) {
+        if (!(isDeclared(ctx.getText()))) {
             System.out.println("error, variable not declared");
         }
         else {
