@@ -1,4 +1,4 @@
-// Generated from C:/Users/Eric/IdeaProjects/ProjectMod8/src\MyLanguage.g4 by ANTLR 4.7
+// Generated from C:/Users/Birte/IdeaProjects/ProjectMod8/src\MyLanguage.g4 by ANTLR 4.7
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -15,6 +15,12 @@ public interface MyLanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitProgram(MyLanguageParser.ProgramContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link MyLanguageParser#thread}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitThread(MyLanguageParser.ThreadContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MyLanguageParser#body}.
 	 * @param ctx the parse tree
@@ -77,6 +83,13 @@ public interface MyLanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitPrintStat(MyLanguageParser.PrintStatContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code lockStat}
+	 * labeled alternative in {@link MyLanguageParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLockStat(MyLanguageParser.LockStatContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MyLanguageParser#block}.
 	 * @param ctx the parse tree

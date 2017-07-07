@@ -23,18 +23,16 @@ public class Scope {
     }
 
     public boolean put(String id, Type type) {
+        System.out.println("before" + id +" "+ newOffset);
         boolean result = !offsets.containsKey(id);
         if (result) {
+            System.out.println("between");
             offsets.put(id, newOffset);
-            if (type == Type.INTEGER) {
-                newOffset += 4;
-                varType.put(id, Type.INTEGER);
-            }
-            else {
-                newOffset += 4;
-                varType.put(id, Type.BOOLEAN);
-            }
+            this.newOffset += 1;
+            if (type == Type.INTEGER) {varType.put(id, Type.INTEGER);}
+            else {varType.put(id, Type.BOOLEAN);}
         }
+        System.out.println("after " + id + " " + newOffset);
         return result;
     }
 
@@ -45,5 +43,7 @@ public class Scope {
     public Type getType(String id) {
         return varType.get(id);
     }
+
+    public Object showScope () {return varType.keySet();}
 
 }

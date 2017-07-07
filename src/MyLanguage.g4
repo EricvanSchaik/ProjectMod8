@@ -1,6 +1,8 @@
 grammar MyLanguage;
 
-program: CLASS ID SEMI body;
+program: CLASS ID SEMI thread body;
+
+thread : NUMBER SHARED LEFT (ID',' )* ID? RIGHT SEMI | ;
 
 body : (stat SEMI)+;
 
@@ -12,6 +14,7 @@ stat :   type ID IS expr                                                    # de
         | block                                                             # blockStat
         | READ LEFT ID RIGHT                                                # readStat
         | PRINT LEFT expr RIGHT                                             # printStat
+        | LOCK block                                                        # lockStat
         ;
 
 block : LPAR (stat SEMI)+ RPAR;
@@ -45,6 +48,8 @@ RANGE: 'range';
 WHILE : 'while';
 READ : 'read';
 PRINT : 'print';
+SHARED : 'shared';
+LOCK : 'lock';
 
 // Types
 NUMBER : [0-9]+;

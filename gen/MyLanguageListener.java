@@ -1,4 +1,4 @@
-// Generated from C:/Users/Eric/IdeaProjects/ProjectMod8/src\MyLanguage.g4 by ANTLR 4.7
+// Generated from C:/Users/Birte/IdeaProjects/ProjectMod8/src\MyLanguage.g4 by ANTLR 4.7
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -16,6 +16,16 @@ public interface MyLanguageListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitProgram(MyLanguageParser.ProgramContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link MyLanguageParser#thread}.
+	 * @param ctx the parse tree
+	 */
+	void enterThread(MyLanguageParser.ThreadContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link MyLanguageParser#thread}.
+	 * @param ctx the parse tree
+	 */
+	void exitThread(MyLanguageParser.ThreadContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link MyLanguageParser#body}.
 	 * @param ctx the parse tree
@@ -122,6 +132,18 @@ public interface MyLanguageListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPrintStat(MyLanguageParser.PrintStatContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code lockStat}
+	 * labeled alternative in {@link MyLanguageParser#stat}.
+	 * @param ctx the parse tree
+	 */
+	void enterLockStat(MyLanguageParser.LockStatContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code lockStat}
+	 * labeled alternative in {@link MyLanguageParser#stat}.
+	 * @param ctx the parse tree
+	 */
+	void exitLockStat(MyLanguageParser.LockStatContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link MyLanguageParser#block}.
 	 * @param ctx the parse tree
